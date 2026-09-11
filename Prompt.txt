@@ -1,0 +1,9 @@
+I need you to scrape real estate agent leads from Google Maps and public directories across these regions: USA (New York, Los Angeles, Miami, Houston, Chicago), Canada (Toronto, Vancouver), UK (London, Manchester), Arabic countries (Dubai, Riyadh, Cairo), Uganda (Kampala, Entebbe), Africa (Nairobi, Lagos, Johannesburg, Accra), and Asia (Singapore, Mumbai, Manila, Kuala Lumpur).
+
+For each city, search Google Maps for "real estate agent [city]" and collect: agent name, phone number, website URL, email if visible, address, and region label.
+
+Use Python with the playwright or selenium library to automate a real browser (not raw requests — Google blocks those). Loop through all cities, scrape up to 15 agents per city, remove duplicates, and save everything to a CSV file called real_estate_leads.csv with columns: name, phone, website, email, address, region.
+
+Handle rate limiting with random delays between 3-6 seconds. Use a realistic browser User-Agent. Print progress as it runs. At the end print a breakdown of how many leads were collected per region.
+
+Write the full working Python script, install any required packages, and run it.

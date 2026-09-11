@@ -1,0 +1,362 @@
+﻿Good — confirmed the pricing. Gemini 2.5 Flash Lite is $0.10 per million input tokens and $0.40 per million output tokens — that is dirt cheap. Here's the full breakdown redone:
+________________
+
+
+🏗️ AI Listing Marketing Kit — Full App Breakdown
+Powered by Gemini 2.5 Flash Lite
+________________
+
+
+Why Gemini 2.5 Flash Lite Is The Right Call
+It's a lightweight reasoning model optimized for ultra-low latency and cost efficiency, with a 1,048,576 token context window. For your use case — generating listing descriptions and captions — you don't need a heavy model. Flash Lite will crush it at a fraction of the cost.
+Cost math per generation: Your prompt + property details ≈ ~800 input tokens. Output (description + 5 captions + email) ≈ ~1,200 output tokens.
+* Input cost: 800 × $0.0000001 = $0.00008
+* Output cost: 1,200 × $0.0000004 = $0.00048
+* Total per generation: ~$0.00056 — less than 1/10th of a cent
+At 1,000 generations/month you spend $0.56 in API costs. Even at 50,000 generations you're paying $28. Your $29/month tier alone covers 50,000 generations. Pure profit margin.
+Flash Lite also gives you 1,000 requests per day on the free tier alone — meaning you can run your entire beta testing phase for free before spending a single dollar.
+________________
+
+
+The Core User Flow
+Agent visits landing page
+         ↓
+Signs up with email + password
+         ↓
+Lands on Dashboard → clicks "New Listing"
+         ↓
+Fills in the listing form
+         ↓
+Hits "Generate My Kit"
+         ↓
+Your Next.js API route fires a POST to Gemini API
+         ↓
+Gemini 2.5 Flash Lite returns JSON in ~3–5 seconds
+         ↓
+Results render on screen — 4 sections + shareable link
+         ↓
+Agent copies content, shares mini-site link
+         ↓
+Agent comes back next listing → stays subscribed forever
+
+
+________________
+
+
+Every Screen In The App
+1. Landing Page (/)
+* Hero headline + 30-second demo video of the tool working
+* "Generate a full listing kit in 60 seconds" as the core hook
+* Pricing section (3 tiers)
+* 3–5 testimonials (use beta tester quotes early)
+* Single CTA button: "Start Free — No Credit Card"
+2. Auth Pages (/signup, /login)
+* Email + password only — no Google OAuth needed early on
+* Supabase Auth handles everything, takes 20 minutes to set up
+* After signup → redirect to /dashboard
+3. Dashboard (/dashboard)
+* Grid of all past listings (card per listing — address, date, thumbnail)
+* Usage bar: "14 of 20 generations used this month"
+* Big "+ New Listing" button top right
+* Sidebar: Plan badge, Settings, Logout
+4. New Listing Form (/dashboard/new)
+This is the core screen. Exactly these fields:
+Property Address          text input        "123 Maple Street, Austin TX"
+Listing Price             number input      "$485,000"
+Bedrooms                  dropdown          1 / 2 / 3 / 4 / 5+
+Bathrooms                 dropdown          1 / 1.5 / 2 / 2.5 / 3+
+Property Type             dropdown          House / Condo / Townhouse / Land / Commercial
+Key Feature 1             text input        "Renovated chef's kitchen"
+Key Feature 2             text input        "Private pool with deck"
+Key Feature 3             text input        "Walking distance to top-rated schools"
+Target Buyer              dropdown          First-time buyers / Investors / Luxury / Families
+Writing Tone              dropdown          Professional / Warm & Friendly / Luxury / Urgent
+Photos (optional)         file upload       Max 3 images, shown as previews
+
+
+One big "Generate My Kit →" button at the bottom. Form validates before submitting (no empty required fields).
+5. Results Screen (/dashboard/listing/[id])
+Four tabs across the top:
+Tab 1 — 📝 Listing Description
+* The full MLS-ready write-up (150–250 words)
+* "Copy" button top right
+* Character count shown (for MLS limits)
+* "Regenerate" button (uses another generation credit)
+Tab 2 — 📱 Social Captions Five individual caption cards:
+* Instagram Post 1 (with emojis + hashtags)
+* Instagram Post 2 (different angle)
+* Facebook (slightly longer, conversational)
+* LinkedIn (professional, investor-focused)
+* X/Twitter (punchy, under 280 chars)
+* Each card has its own "Copy" button
+Tab 3 — 📧 Buyer Email
+* Subject line (copy button)
+* Full email body (copy button)
+* Ready to paste directly into Mailchimp or Gmail
+Tab 4 — 🔗 Mini-Site
+* Preview of the public page
+* The shareable URL: yourapp.com/p/xK92mP4a
+* "Copy Link" button
+* "Open in New Tab" button
+* QR code download button (agents love this for print)
+6. Public Mini-Site (/p/[slug])
+No login required. Anyone with the link sees:
+* Property photos (carousel if multiple)
+* Address, price, beds/baths/type
+* The generated listing description
+* Agent's name, photo, phone number, agency
+* "Interested in this property?" contact button (opens email or WhatsApp)
+* Subtle "Powered by [YourApp]" footer — free advertising every time an agent shares a link
+7. Settings (/dashboard/settings)
+* Profile tab: name, agency name, phone, headshot upload (shown on mini-sites)
+* Billing tab: current plan, next billing date, upgrade/downgrade, cancel
+* Stripe customer portal embedded (Stripe gives you a pre-built portal, zero work)
+________________
+
+
+Tech Stack — Exact Tools
+Frontend          Next.js 14 (App Router)
+Styling           Tailwind CSS + shadcn/ui components
+Auth              Supabase Auth (email/password)
+Database          Supabase (Postgres)
+File Storage      Supabase Storage (property photos + agent headshots)
+AI                Google Gemini 2.5 Flash Lite API
+Payments          Stripe (subscriptions)
+Hosting           Vercel
+Domain            Namecheap (~$10/yr)
+Email             Resend (free tier, for welcome/billing emails)
+
+
+You've already deployed to Vercel. You know vibe coding. This is 100% within your reach.
+________________
+
+
+Database Schema — 4 Tables
+-- 1. Users (extended from Supabase auth.users)
+profiles
+  id                uuid  PRIMARY KEY (matches auth.users.id)
+  full_name         text
+  agency_name       text
+  phone             text
+  headshot_url      text
+  plan              text    DEFAULT 'free'   -- 'free' | 'starter' | 'pro'
+  stripe_customer_id text
+  created_at        timestamp
+
+
+-- 2. Listings (one row per property the agent submits)
+listings
+  id                uuid  PRIMARY KEY
+  user_id           uuid  REFERENCES profiles(id)
+  address           text
+  price             numeric
+  bedrooms          int
+  bathrooms         numeric
+  property_type     text
+  feature_1         text
+  feature_2         text
+  feature_3         text
+  target_buyer      text
+  tone              text
+  photo_urls        text[]   -- array of Supabase storage URLs
+  created_at        timestamp
+
+
+-- 3. Generated Content (one row per generation)
+generated_content
+  id                uuid  PRIMARY KEY
+  listing_id        uuid  REFERENCES listings(id)
+  listing_desc      text
+  caption_ig1       text
+  caption_ig2       text
+  caption_fb        text
+  caption_li        text
+  caption_tw        text
+  email_subject     text
+  email_body        text
+  mini_site_slug    text  UNIQUE   -- e.g. "xK92mP4a"
+  created_at        timestamp
+
+
+-- 4. Subscriptions
+subscriptions
+  id                    uuid  PRIMARY KEY
+  user_id               uuid  REFERENCES profiles(id)
+  stripe_subscription_id text
+  plan                  text
+  status                text    -- 'active' | 'canceled' | 'past_due'
+  generations_used      int   DEFAULT 0
+  generations_limit     int   DEFAULT 3  -- 3 free, 20 starter, 999999 pro
+  period_end            timestamp
+
+
+________________
+
+
+The Gemini API Call — Exact Code
+This goes in /app/api/generate/route.ts — your Next.js backend route:
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+
+
+export async function POST(req: Request) {
+  const { listing } = await req.json();
+
+
+  // 1. Check generation limit before calling API
+  // (query Supabase here — skip for brevity)
+
+
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash-lite",   // the model string
+    generationConfig: {
+      responseMimeType: "application/json",  // forces clean JSON back
+    },
+  });
+
+
+  const prompt = `
+You are an expert real estate copywriter with 15 years of experience.
+
+
+PROPERTY DETAILS:
+- Address: ${listing.address}
+- Price: $${listing.price.toLocaleString()}
+- Bedrooms: ${listing.bedrooms} | Bathrooms: ${listing.bathrooms}
+- Property Type: ${listing.propertyType}
+- Key Features: ${listing.feature1}, ${listing.feature2}, ${listing.feature3}
+- Target Buyer: ${listing.targetBuyer}
+- Tone: ${listing.tone}
+
+
+Generate marketing content and return ONLY a valid JSON object in this exact structure:
+{
+  "listing_description": "150-250 word MLS-ready listing description. Compelling, specific, no clichés.",
+  "captions": {
+    "instagram_1": "Caption with relevant emojis and 5-8 hashtags. Max 2,200 chars.",
+    "instagram_2": "Different angle from instagram_1. Highlight a different feature.",
+    "facebook": "Conversational, slightly longer, great for sharing. No hashtags.",
+    "linkedin": "Professional tone targeting investors or relocating professionals.",
+    "twitter": "Punchy and attention-grabbing. MUST be under 280 characters including spaces."
+  },
+  "email": {
+    "subject": "Compelling email subject line under 60 characters",
+    "body": "Full email for agent to send to their buyers list. 150-200 words. Warm, professional. End with clear call to action."
+  }
+}
+
+
+Return ONLY the JSON. No explanations. No markdown. No backticks.
+`;
+
+
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
+  const data = JSON.parse(text);
+
+
+  // 2. Save to Supabase + increment generations_used
+  // 3. Generate mini_site_slug with nanoid
+  // 4. Return to frontend
+
+
+  return Response.json({ success: true, content: data });
+}
+
+
+Install the SDK with:
+npm install @google/generative-ai
+
+
+________________
+
+
+Stripe Billing — How It Works Exactly
+The 3 Plans:
+Plan
+	Price
+	Generations/month
+	Free
+	$0
+	3 total (not per month — lifetime trial)
+	Starter
+	$29/mo
+	20/month
+	Pro
+	$59/mo
+	Unlimited
+	Generation Gate Logic (runs before every API call):
+if (user.plan === 'free' && user.generations_used >= 3) {
+  return { error: 'LIMIT_REACHED', redirect: '/upgrade' }
+}
+if (user.plan === 'starter' && user.generations_used >= 20) {
+  return { error: 'LIMIT_REACHED', redirect: '/upgrade' }
+}
+// pro = no limit, always proceed
+
+
+Stripe Webhook — when a billing period renews, Stripe sends invoice.paid event → your webhook resets generations_used = 0 for that user. One webhook, 10 lines of code.
+________________
+
+
+The Mini-Site — How It's Built
+When content is generated, create a unique slug:
+import { nanoid } from "nanoid";
+const slug = nanoid(8);  // "xK92mP4a"
+
+
+Save it to generated_content.mini_site_slug.
+The public page is just a Next.js dynamic route at /app/p/[slug]/page.tsx:
+// Fetch listing + content from Supabase by slug
+// Render photos, description, agent contact info
+// No auth required — fully public
+
+
+Agents share yourapp.com/p/xK92mP4a on WhatsApp, Instagram stories, with buyers — every share is free marketing for your product.
+________________
+
+
+Build Order — 5 Weeks
+Week 1   Supabase setup (auth + DB schema) + dashboard shell + New Listing form UI
+Week 2   Gemini API integration + results screen + copy buttons (core value)
+Week 3   Supabase Storage for photo uploads + public mini-site page
+Week 4   Stripe subscriptions + generation limits + settings/billing page
+Week 5   Landing page + polish + onboard 10 beta testers free
+
+
+________________
+
+
+Real Cost Breakdown At Scale
+Monthly Active Users
+	Generations
+	Gemini API Cost
+	Your Revenue (Starter)
+	Profit
+	10 agents
+	200
+	$0.11
+	$290
+	$289.89
+	50 agents
+	1,000
+	$0.56
+	$1,450
+	$1,449.44
+	100 agents
+	2,000
+	$1.12
+	$2,900
+	$2,898.88
+	500 agents
+	10,000
+	$5.60
+	$14,500
+	$14,494.40
+	The API cost is essentially zero. Your only real costs are Vercel (~$20/mo), Supabase (~$25/mo), and your time.
+________________
+
+
+That's the whole app, fully reasoned out. Want me to scaffold the actual Next.js file structure, write the full Supabase setup SQL, or write the landing page copy next?
